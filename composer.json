@@ -31,8 +31,6 @@
 	},
 	"autoload": {
 		"classmap": [
-			"database/migrations",
-			"database/seeds"
 		],
 		"psr-4": {
 			"Sanatorium\\Sync\\": "src/"
