@@ -265,7 +265,7 @@ return [
 
 			[
 				'slug'  => 'admin-sanatorium-sync',
-				'name'  => 'Sync',
+				'name'  => 'Import & Export',
 				'class' => 'fa fa-refresh',
 				'uri'   => 'sync',
 				'regex' => '/:admin\/sync/i',
