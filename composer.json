@@ -27,7 +27,14 @@
 	"require": {
 		"php": ">=5.4.0",
 		"cartalyst/composer-installers": "1.2.*",
-		"platform/foundation": "2.0.*|3.0.*"
+		"platform/foundation": "2.0.*|3.0.*",
+		"league/csv": ">=8.0.0",
+		"maatwebsite/excel": ">=2.1.0",
+		"akeneo/spreadsheet-parser": ">=1.1.5",
+		"phpoffice/phpexcel": ">=1.8.0",
+		"phpoffice/phpword": ">=0.12.0",
+		"patchwork/utf8": ">=1.2.1",
+		"tijsverkoyen/css-to-inline-styles": ">=1.5"
 	},
 	"autoload": {
 		"classmap": [
