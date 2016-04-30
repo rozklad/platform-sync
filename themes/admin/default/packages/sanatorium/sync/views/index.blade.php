@@ -81,15 +81,15 @@
 	<div class="panel-body">
 
 		<div class="col-sm-6">
-			
+
 			<br>
 
 			<input type="hidden" name="setup_url" value="{{ route('admin.sanatorium.sync.setup') }}">
 
 			<fieldset>
-				
+
 				<legend>{{{ trans('sanatorium/sync::common.import') }}}</legend>
-			
+
 				<input type="hidden" name="_token" value="{{ csrf_token() }}">
 
 				<div class="form-group">
@@ -101,6 +101,60 @@
 					</label>
 
 					<input type="file" name="import" id="import">
+
+				</div>
+
+				<div class="form-group">
+
+					<label class="control-label" for="encoding">
+
+						{{{ trans('sanatorium/sync::common.encoding') }}}
+
+					</label>
+
+					<select name="encoding" class="form-control">
+						<option value="utf8">UTF-8</option>
+					</select>
+
+				</div>
+
+				<div class="form-group">
+
+					<label class="control-label" for="delimiter">
+
+						{{{ trans('sanatorium/sync::common.delimiter') }}}
+
+					</label>
+
+					<input name="delimiter" value="," id="delimiter" class="form-control">
+
+				</div>
+
+				<div class="form-group">
+
+					<label class="control-label" for="text_delimiter">
+
+						{{{ trans('sanatorium/sync::common.text_delimiter') }}}
+
+					</label>
+
+					<select name="text_delimiter" class="form-control">
+						<option value="quote">"</option>
+					</select>
+
+				</div>
+
+				<div class="form-group">
+
+					<label class="control-label" for="newline">
+
+						{{{ trans('sanatorium/sync::common.newline') }}}
+
+					</label>
+
+					<select name="newline" class="form-control">
+						<option value="\n">{{{ trans('sanatorium/sync::common.newline_options.breakline') }}}</option>
+					</select>
 
 				</div>
 
@@ -176,6 +230,62 @@
 
 	</div>
 
+	<table class="table table-responsive table-striped" id="results-table"></table>
+
+	<script type="text/template" id="table" data-template="results">
+
+		<thead>
+			<tr>
+				<% _.each(results.structure, function(r) { %>
+					<th>
+						<%= r.title %>
+					</th>
+				<% }); %>
+			</tr>
+			<tr>
+				<% _.each(results.structure, function(r) { %>
+					<td style="background-color:#ddd;">
+						<select name="types[<%= r.title %>]" style="width:100%;">
+							<option value="ignore">{{ trans('sanatorium/sync::common.functions.ignore') }}</option>
+							<option value="create_attribute">{{ trans('sanatorium/sync::common.functions.create_attribute') }}</option>
+							<% _.each(results.attributes, function(a) { %>
+								<% if (a.slug == r.title || a.name == r.title) { %>
+									<option value="attribute.<%= a.slug %>" selected><%= a.name %></option>
+								<% } else { %>
+									<option value="attribute.<%= a.slug %>"><%= a.name %></option>
+								<% } %>
+							<% }); %>
+							<% _.each(results.functions, function(f) { %>
+							<option value="functions.<%= f %>"><%= f %></option>
+							<% }); %>
+							<% _.each(results.relations, function(r) { %>
+							<option value="relations.<%= r %>"><%= r %></option>
+							<% }); %>
+						</select>
+					</td>
+				<% }); %>
+			</tr>
+		</thead>
+		<tbody>
+			<% _.each(results.data, function(r) { %>
+				<tr>
+					<% _.each(results.structure, function(s) { %>
+						<% _.each(r, function(c, k) { %>
+							<% if ( k == s.title ) { %>
+							<td>
+								<%= c %>
+							</td>
+							<% } %>
+						<% }); %>
+					<% }); %>
+
+				</tr>
+			<% }); %>
+		</tbody>
+
+
+	</script>
+
 </section>
 
 	@foreach($formatters as $key => $formatter)
@@ -246,6 +356,7 @@
 		</div>
 	@endforeach
 
+	@if (count($formatters) > 0)
 	<div class="panel">
 
 		<header class="panel-heading">
@@ -285,6 +396,7 @@
 		</div>
 
 	</div>
+	@endif
 
 </form>
 

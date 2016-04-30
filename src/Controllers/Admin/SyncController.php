@@ -22,6 +22,11 @@ class SyncController extends AdminController {
 
 		foreach ( $services as $key => $item ) {
 
+			$is_disabled = config('sanatorium-sync.exports_disabled.'.$key);
+
+			if ( $is_disabled )
+				continue;
+
 			$formatters[$key] = [
 				'url' 			=> route('sanatorium.sync.export.formatter', ['type' => $key]),
 				'icon' 			=> 'fa fa-file-code-o',

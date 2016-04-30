@@ -7,17 +7,27 @@ return [
 	'preview' => 'Preview',
 
 	'functions' => [
-		'ignore' => 'Ignorovat',
-		'create_attribute' => 'Vytvořit atribut',
+		'ignore' => 'Ignore',
+		'create_attribute' => 'Create attribute',
+	],
+
+	'delimiter' => 'Cell delimiter',
+	'text_delimiter' => 'Text delimiter',
+	'newline'  => 'Newline delimiter',
+	'encoding' => 'File encoding',
+	'newline_options' => [
+		'breakline' => 'Line break',
 	],
 
 	'options' => [
-		'use_dictionary' => 'Používat základní slovník',
+		'use_dictionary' => 'Use default dictionary',
 	],
 
 	'messages' => [
 		'errors' => [
 			'no_file' => 'No file has been uploaded',
+			'ignored_or_empty' => 'All input columns are ignored or file is empty',
+			'empty' => 'Input data is empty',
 		],
 		'success' => [
 			'imported' => 'Data imported succesfully'
@@ -28,9 +38,9 @@ return [
 
 		'refresh' => [
 
-			'title' => 'Obnovení exportu',
-			'description' => 'Všechny exportní soubory jsou znovu vygenerovány ve chvíli, kdy dojde k jakékoliv změně produktu. Typicky se může jednat o změnu ceny, zařazení v kategorii apod.',
-			'cron' => 'Protože všechny exporty jsou upravovány průběžně, není třeba nastavovat za tímto účelem CRONovou operaci. Pokud si přesto přejete operaci nastavit, pod tímto textem naleznete odkaz.',
+			'title' => 'Export refresh',
+			'description' => 'All export sources are regenerated at the moment, when their respective entities are updated. Typically this can refer to updating/deletion/creation etc.',
+			'cron' => 'As all the exports are done per action, you don\'t have to set up CRON operation. If you still wish to perfom regular updates of export source, you will find link for that below.',
 		
 		],
 

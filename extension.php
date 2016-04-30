@@ -123,7 +123,9 @@ return [
 
 	'providers' => [
 
-		'Sanatorium\Sync\Providers\SyncServiceProvider'
+		'Sanatorium\Sync\Providers\SyncServiceProvider',
+		'Sanatorium\Sync\Providers\DictionaryServiceProvider',
+		'Sanatorium\Sync\Providers\DictionaryentriesServiceProvider',
 
 	],
 
@@ -165,6 +167,60 @@ return [
 			{
 				Route::get('{type}', ['as' => 'sanatorium.sync.export.formatter', 'uses' => 'ExportController@index']);
 			});
+
+					Route::group([
+				'prefix'    => admin_uri().'/sync/dictionaries',
+				'namespace' => 'Sanatorium\Sync\Controllers\Admin',
+			], function()
+			{
+				Route::get('/' , ['as' => 'admin.sanatorium.sync.dictionaries.all', 'uses' => 'DictionariesController@index']);
+				Route::post('/', ['as' => 'admin.sanatorium.sync.dictionaries.all', 'uses' => 'DictionariesController@executeAction']);
+
+				Route::get('grid', ['as' => 'admin.sanatorium.sync.dictionaries.grid', 'uses' => 'DictionariesController@grid']);
+
+				Route::get('create' , ['as' => 'admin.sanatorium.sync.dictionaries.create', 'uses' => 'DictionariesController@create']);
+				Route::post('create', ['as' => 'admin.sanatorium.sync.dictionaries.create', 'uses' => 'DictionariesController@store']);
+
+				Route::get('{id}'   , ['as' => 'admin.sanatorium.sync.dictionaries.edit'  , 'uses' => 'DictionariesController@edit']);
+				Route::post('{id}'  , ['as' => 'admin.sanatorium.sync.dictionaries.edit'  , 'uses' => 'DictionariesController@update']);
+
+				Route::delete('{id}', ['as' => 'admin.sanatorium.sync.dictionaries.delete', 'uses' => 'DictionariesController@delete']);
+			});
+
+		Route::group([
+			'prefix'    => 'sync/dictionaries',
+			'namespace' => 'Sanatorium\Sync\Controllers\Frontend',
+		], function()
+		{
+			Route::get('/', ['as' => 'sanatorium.sync.dictionaries.index', 'uses' => 'DictionariesController@index']);
+		});
+
+					Route::group([
+				'prefix'    => admin_uri().'/sync/dictionaryentries',
+				'namespace' => 'Sanatorium\Sync\Controllers\Admin',
+			], function()
+			{
+				Route::get('/' , ['as' => 'admin.sanatorium.sync.dictionaryentries.all', 'uses' => 'DictionaryentriesController@index']);
+				Route::post('/', ['as' => 'admin.sanatorium.sync.dictionaryentries.all', 'uses' => 'DictionaryentriesController@executeAction']);
+
+				Route::get('grid', ['as' => 'admin.sanatorium.sync.dictionaryentries.grid', 'uses' => 'DictionaryentriesController@grid']);
+
+				Route::get('create' , ['as' => 'admin.sanatorium.sync.dictionaryentries.create', 'uses' => 'DictionaryentriesController@create']);
+				Route::post('create', ['as' => 'admin.sanatorium.sync.dictionaryentries.create', 'uses' => 'DictionaryentriesController@store']);
+
+				Route::get('{id}'   , ['as' => 'admin.sanatorium.sync.dictionaryentries.edit'  , 'uses' => 'DictionaryentriesController@edit']);
+				Route::post('{id}'  , ['as' => 'admin.sanatorium.sync.dictionaryentries.edit'  , 'uses' => 'DictionaryentriesController@update']);
+
+				Route::delete('{id}', ['as' => 'admin.sanatorium.sync.dictionaryentries.delete', 'uses' => 'DictionaryentriesController@delete']);
+			});
+
+		Route::group([
+			'prefix'    => 'sync/dictionaryentries',
+			'namespace' => 'Sanatorium\Sync\Controllers\Frontend',
+		], function()
+		{
+			Route::get('/', ['as' => 'sanatorium.sync.dictionaryentries.index', 'uses' => 'DictionaryentriesController@index']);
+		});
 	},
 
 	/*
@@ -206,7 +262,71 @@ return [
 
 	'permissions' => function(Permissions $permissions)
 	{
+		$permissions->group('dictionary', function($g)
+		{
+			$g->name = 'Dictionaries';
 
+			$g->permission('dictionary.index', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaries/permissions.index');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionariesController', 'index, grid');
+			});
+
+			$g->permission('dictionary.create', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaries/permissions.create');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionariesController', 'create, store');
+			});
+
+			$g->permission('dictionary.edit', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaries/permissions.edit');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionariesController', 'edit, update');
+			});
+
+			$g->permission('dictionary.delete', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaries/permissions.delete');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionariesController', 'delete');
+			});
+		});
+
+		$permissions->group('dictionaryentries', function($g)
+		{
+			$g->name = 'Dictionaryentries';
+
+			$g->permission('dictionaryentries.index', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaryentries/permissions.index');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionaryentriesController', 'index, grid');
+			});
+
+			$g->permission('dictionaryentries.create', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaryentries/permissions.create');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionaryentriesController', 'create, store');
+			});
+
+			$g->permission('dictionaryentries.edit', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaryentries/permissions.edit');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionaryentriesController', 'edit, update');
+			});
+
+			$g->permission('dictionaryentries.delete', function($p)
+			{
+				$p->label = trans('sanatorium/sync::dictionaryentries/permissions.delete');
+
+				$p->controller('Sanatorium\Sync\Controllers\Admin\DictionaryentriesController', 'delete');
+			});
+		});
 	},
 
 	/*
@@ -238,7 +358,38 @@ return [
 
 	'settings' => function(Settings $settings, Application $app)
 	{
+		$settings->find('platform')->section('sync', function ($s) {
+			$s->name = trans('sanatorium/sync::settings.title');
 
+			$s->fieldset('sync', function ($f) {
+				$f->name = trans('sanatorium/sync::common.title');
+
+				$services = app('sanatorium.sync.formatters')->getServices();
+
+				foreach ( $services as $key => $item ) {
+
+					$f->field($key, function ($f) use ($item, $key) {
+						$f->name   = trans('sanatorium/sync::settings.exports_disabled') . ' : ' . $item->title;
+						$f->info   = $key;
+						$f->type   = 'radio';
+						$f->config = 'sanatorium-sync.exports_disabled.'.$key;
+
+						$f->option('yes', function ($o) {
+							$o->value = true;
+							$o->label = trans('common.disabled');
+						});
+
+						$f->option('no', function ($o) {
+							$o->value = false;
+							$o->label = trans('common.enabled');
+						});
+
+					});
+
+				}
+
+			});
+		});
 	},
 
 	/*
@@ -262,21 +413,33 @@ return [
 	'menus' => [
 
 		'admin' => [
-
 			[
-				'slug'  => 'admin-sanatorium-sync',
-				'name'  => 'Import & Export',
+				'slug' => 'admin-sanatorium-sync',
+				'name' => 'Import & Export',
 				'class' => 'fa fa-refresh',
-				'uri'   => 'sync',
+				'uri' => 'sync',
 				'regex' => '/:admin\/sync/i',
+				'children' => [
+                    [
+                        'slug' => 'admin-sanatorium-sync-index',
+                        'name' => 'Import & Export',
+                        'class' => 'fa fa-refresh',
+                        'uri' => 'sync',
+                        'regex' => '/:admin\/sync/i',
+                    ],
+					[
+						'class' => 'fa fa-book',
+						'name' => 'Dictionaries',
+						'uri' => 'sync/dictionaries',
+						'regex' => '/:admin\/sync\/dictionary/i',
+						'slug' => 'admin-sanatorium-sync-dictionary',
+					],
+				],
 			],
-
 		],
-
 		'main' => [
-
+			
 		],
-
 	],
 
 ];

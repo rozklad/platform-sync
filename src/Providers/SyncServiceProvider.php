@@ -14,6 +14,8 @@ class SyncServiceProvider extends ServiceProvider {
 
 		// Register the manager
         $this->bindIf('sanatorium.sync.formatters', 'Sanatorium\Sync\Repositories\Formatters\FormattersRepository');
+
+		$this->prepareResources();
 	}
 
 	/**
@@ -26,6 +28,22 @@ class SyncServiceProvider extends ServiceProvider {
 
 		// Register the repository
 		$this->bindIf('sanatorium.sync.export', 'Sanatorium\Sync\Repositories\Export\ExportRepository');
+	}
+
+	/**
+	 * Prepare the package resources.
+	 *
+	 * @return void
+	 */
+	protected function prepareResources()
+	{
+		$config = realpath(__DIR__.'/../../config/config.php');
+
+		$this->mergeConfigFrom($config, 'sanatorium-sync');
+
+		$this->publishes([
+			$config => config_path('sanatorium-sync.php'),
+		], 'config');
 	}
 
 }

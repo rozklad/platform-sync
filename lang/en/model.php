@@ -2,9 +2,9 @@
 
 return [
 	
-	'created' => 'Vytvořeno',
+	'created' => 'Created',
 
 	'action' => [
-		'refresh' => 'Obnovit',
+		'refresh' => 'Refresh',
 	]
 ];
