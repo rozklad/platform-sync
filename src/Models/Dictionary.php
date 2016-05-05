@@ -33,4 +33,9 @@ class Dictionary extends Model implements EntityInterface {
 	 */
 	protected static $entityNamespace = 'sanatorium/sync.dictionary';
 
+	public function entries()
+	{
+		return $this->hasMany('Sanatorium\Sync\Models\Dictionaryentries');
+	}
+
 }

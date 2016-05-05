@@ -189,8 +189,27 @@ class DictionariesController extends AdminController {
 			$dictionary = $this->dictionaries->createModel();
 		}
 
+		$attributes = self::optGroupByNamespace(\Sanatorium\Sync\Controllers\Admin\SyncController::userAttributes());
+
 		// Show the page
-		return view('sanatorium/sync::dictionaries.form', compact('mode', 'dictionary'));
+		return view('sanatorium/sync::dictionaries.form', compact('mode', 'dictionary', 'attributes'));
+	}
+
+	public static function optGroupByNamespace($attributes)
+	{
+		$result = [];
+
+		foreach( $attributes as $attribute ) {
+
+			if ( !isset($result[$attribute['namespace']]) ) {
+				$result[$attribute['namespace']] = [];
+			}
+
+			$result[$attribute['namespace']][] = $attribute;
+
+		}
+
+		return $result;
 	}
 
 	/**
@@ -203,7 +222,26 @@ class DictionariesController extends AdminController {
 	protected function processForm($mode, $id = null)
 	{
 		// Store the dictionary
-		list($messages) = $this->dictionaries->store($id, request()->all());
+		list($messages, $dictionary) = $this->dictionaries->store($id, request()->except('entries'));
+
+		$entries = request()->get('entries');
+		unset($entries['ROW_POSITION']);
+
+		foreach ( $entries as $key => $entry ) {
+
+			$entries[$key] = [
+				'slug' => $entry['slug'],
+				'options' => json_encode($entry['options'])
+			];
+
+		}
+
+		$dictionary->entries()->delete();
+
+		foreach( $entries as $entry )
+		{
+			$dictionary->entries()->create($entry);
+		}
 
 		// Do we have any errors?
 		if ($messages->isEmpty())

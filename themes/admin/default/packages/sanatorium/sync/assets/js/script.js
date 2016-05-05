@@ -19,6 +19,9 @@ $(function(){
 		});
 
 		data.append('delimiter', $('[name="delimiter"]').val());
+		data.append('enclosure', $('[name="enclosure"]').val());
+		data.append('newline', $('[name="newline"]').val());
+		data.append('dictionary', $('[name="dictionary"]').val());
 
 		$.ajax({
 			url: action,
@@ -29,20 +32,15 @@ $(function(){
 			type: 'POST',
 			success: function(data){
 
-				var compiled = _.template( $('#tree').html() );
+				/*var compiled = _.template( $('#tree').html() );
 				$('#results').html( compiled({results: data}) );
-
+*/
 				var compiled = _.template( $('#table').html() );
 				$('#results-table').html( compiled({results: data}) );
 
 				$('html, body').animate({
 					scrollTop: $("#results-table").offset().top
 				}, 500);
-
-				if (data.delimiter != $('[name="delimiter"]').val()) {
-					//alert('System recognized delimiter ' + data.delimiter);
-					$('[name="delimiter"]').val(data.delimiter);
-				}
 
 				synchronizeSelects();
 			}

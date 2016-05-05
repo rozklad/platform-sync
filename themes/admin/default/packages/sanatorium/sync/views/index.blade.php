@@ -104,57 +104,74 @@
 
 				</div>
 
-				<div class="form-group">
+				<div class="row">
 
-					<label class="control-label" for="encoding">
+					<div class="form-group col-md-4">
 
-						{{{ trans('sanatorium/sync::common.encoding') }}}
+						<label class="control-label" for="delimiter">
 
-					</label>
+							{{{ trans('sanatorium/sync::common.delimiter') }}}
 
-					<select name="encoding" class="form-control">
-						<option value="utf8">UTF-8</option>
-					</select>
+						</label>
+
+						<select name="delimiter" class="form-control" id="delimiter">
+							<option value=';'>;</option>
+							<option value=",">,</option>
+						</select>
+
+					</div>
+
+					<div class="form-group col-md-4">
+
+						<label class="control-label" for="enclosure">
+
+							{{{ trans('sanatorium/sync::common.enclosure') }}}
+
+						</label>
+
+						<select name="enclosure" class="form-control" id="enclosure">
+							<option value='"'>"</option>
+							<option value="|">|</option>
+						</select>
+
+					</div>
+
+					<div class="form-group col-md-4">
+
+						<label class="control-label" for="newline">
+
+							{{{ trans('sanatorium/sync::common.newline') }}}
+
+						</label>
+
+						<select name="newline" class="form-control" id="newline">
+							<option value="\n">\n</option>
+							<option value="\r\n">\r\n</option>
+						</select>
+
+					</div>
 
 				</div>
 
-				<div class="form-group">
+				<div class="row">
 
-					<label class="control-label" for="delimiter">
+					<div class="form-group col-nd-12">
 
-						{{{ trans('sanatorium/sync::common.delimiter') }}}
+						<label class="control-label" for="dictionary">
 
-					</label>
+							{{{ trans('sanatorium/sync::common.dictionary') }}}
 
-					<input name="delimiter" value="," id="delimiter" class="form-control">
+						</label>
 
-				</div>
+						<select name="dictionary" class="form-control" id="dictionary">
+							@if ( isset($dictionaries) )
+								@foreach($dictionaries as $dictionary)
+									<option value="{{ $dictionary->id }}">{{ $dictionary->name }}</option>
+								@endforeach
+							@endif
+						</select>
 
-				<div class="form-group">
-
-					<label class="control-label" for="text_delimiter">
-
-						{{{ trans('sanatorium/sync::common.text_delimiter') }}}
-
-					</label>
-
-					<select name="text_delimiter" class="form-control">
-						<option value="quote">"</option>
-					</select>
-
-				</div>
-
-				<div class="form-group">
-
-					<label class="control-label" for="newline">
-
-						{{{ trans('sanatorium/sync::common.newline') }}}
-
-					</label>
-
-					<select name="newline" class="form-control">
-						<option value="\n">{{{ trans('sanatorium/sync::common.newline_options.breakline') }}}</option>
-					</select>
+					</div>
 
 				</div>
 
@@ -172,18 +189,12 @@
 
 			<br>
 
-			<fieldset>
+			<fieldset class="hidden">
 				
 				<legend>{{{ trans('sanatorium/sync::common.preview') }}}</legend>
 				
 				<div class="form-group checkbox">
-	
-					<input type="checkbox" name="dictionary" checked="checked" id="dictionary">
 
-					<label for="dictionary">
-						{{ trans('sanatorium/sync::common.options.use_dictionary') }}
-					</label>
-	
 				</div>
 
 				<ul class="dynatree-container" id="results"></ul>
@@ -249,7 +260,7 @@
 							<option value="ignore">{{ trans('sanatorium/sync::common.functions.ignore') }}</option>
 							<option value="create_attribute">{{ trans('sanatorium/sync::common.functions.create_attribute') }}</option>
 							<% _.each(results.attributes, function(a) { %>
-								<% if (a.slug == r.title || a.name == r.title) { %>
+								<% if (a.slug == r.guess) { %>
 									<option value="attribute.<%= a.slug %>" selected><%= a.name %></option>
 								<% } else { %>
 									<option value="attribute.<%= a.slug %>"><%= a.name %></option>
