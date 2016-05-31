@@ -241,8 +241,6 @@
 
 	</div>
 
-	<table class="table table-responsive table-striped" id="results-table"></table>
-
 	<script type="text/template" id="table" data-template="results">
 
 		<thead>
@@ -278,6 +276,7 @@
 			</tr>
 		</thead>
 		<tbody>
+
 			<% _.each(results.data, function(r) { %>
 				<tr>
 					<% _.each(results.structure, function(s) { %>
@@ -289,7 +288,6 @@
 							<% } %>
 						<% }); %>
 					<% }); %>
-
 				</tr>
 			<% }); %>
 		</tbody>
@@ -410,6 +408,10 @@
 	@endif
 
 </form>
+
+<div class="table-responsive">
+	<table class="table table-striped" id="results-table"></table>
+</div>
 
 @stop
 

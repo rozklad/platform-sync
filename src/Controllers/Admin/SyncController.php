@@ -4,20 +4,14 @@ use Platform\Access\Controllers\AdminController;
 use File;
 use Event;
 use Sanatorium\Sync\Traits\DataParser;
+use Sanatorium\Sync\Controllers\Admin\DictionariesController;
+use Platform\Attributes\Models\Attribute;
 
 class SyncController extends AdminController
 {
 
     use DataParser;
 
-    public $functions = [
-        'column',
-        'categoryText',
-        'mediaArray',
-        'price',
-        'priceVat',
-        'imgurl',
-    ];
 
     public function index()
     {
@@ -123,41 +117,32 @@ class SyncController extends AdminController
         // Extracts to $data and $type
         extract(self::getFileData($file, $configuration));
 
+        $attributes = DictionariesController::optGroupByNamespace(self::userAttributes(), true);
 
-        // @todo - this is built solely for eshops, extend behavior
-        /*
-        if (is_object($data->SHOPITEM))
+        if ( isset($data['SHOPITEM']) )
         {
-            $structure = get_object_vars($data->SHOPITEM[0]);
-        } else
-        {
-            $structure = $data;
+            $data = $data['SHOPITEM'];
+
+            foreach ( self::shopAttributes() as $key => $value )
+            {
+
+                $attributes[$key] = $value;
+
+            }
         }
-
-        $attributes = $this->attributes->where('namespace', 'sanatorium/shop.product')->get();
-
-        $functions = $this->functions;
-
-        $relations = [
-            'manufacturers',
-        ];
-*/
-
 
         $structure = array_keys($data[0]);
 
-        $attributes = \Sanatorium\Sync\Controllers\Admin\DictionariesController::optGroupByNamespace(self::userAttributes(), true);
-
-        $functions = [];
+        $functions = self::getShopFunctions();
 
         $relations = [];
 
-        foreach( $data as $key => $row ) {
+        foreach( $data as $key => $row )
+        {
 
             $data[ $key ] = $row;
 
         }
-
 
         if (request()->ajax())
         {
@@ -200,28 +185,6 @@ class SyncController extends AdminController
         return null;
     }
 
-    /*
-    public static function dynatree($input = [])
-    {
-        $results = [];
-
-        foreach ($input as $key => $value)
-        {
-            $item = [
-                'title' => $key,
-            ];
-
-            if (is_object($value))
-            {
-                $item['children'] = self::dynatree(get_object_vars($value));
-            }
-
-            $results[] = $item;
-        }
-
-        return $results;
-    }
-*/
     public function setup()
     {
 
@@ -423,14 +386,40 @@ class SyncController extends AdminController
             ],
         ];
 
-        $corporate_attributes = \Platform\Attributes\Models\Attribute::where('namespace', 'sleighdogs/profile.corporate')->get()->toArray();
+        $corporate_attributes = Attribute::where('namespace', 'sleighdogs/profile.corporate')->get()->toArray();
 
-        $user_attributes = \Platform\Attributes\Models\Attribute::where('namespace', 'platform/users')->get()->toArray();
+        $user_attributes = Attribute::where('namespace', 'platform/users')->get()->toArray();
 
         $all_attributes = array_merge($available_columns, $corporate_attributes, $user_attributes);
 
         return $all_attributes;
     }
+
+    public static function shopAttributes()
+    {
+
+        $available_columns = [];
+
+        $product_attributes = Attribute::where('namespace', 'sanatorium/shop.product')->get()->toArray();
+
+        $all_attributes = array_merge($available_columns, $product_attributes);
+
+        return $all_attributes;
+    }
+
+    public static function getShopFunctions()
+    {
+        return [
+            'imgurl',
+            'categoryText',
+            'price',
+            'priceVat',
+            'mediaArray',
+        ];
+    }
+
+
+    // Instance specific
 
     public function createUser($row, $types = [], $dry = false, $invite = false, $merge = false)
     {
