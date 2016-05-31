@@ -25,8 +25,7 @@ class SyncController extends AdminController
 
         $formatters = [];
 
-        if ( is_array($services) )
-        {
+        if ( is_array($services) ) {
             foreach ($services as $key => $item)
             {
 
@@ -94,7 +93,10 @@ class SyncController extends AdminController
             'delimiter' => request()->get('delimiter'),
             'enclosure' => request()->get('enclosure'),
             'newline' => request()->get('newline'),
+            'header_included' => request()->get('header_included'),
         ];
+
+        $dictionary = request()->get('dictionary');
 
         // Check if file was uploaded
         if (!is_object($file))
@@ -121,54 +123,41 @@ class SyncController extends AdminController
         // Extracts to $data and $type
         extract(self::getFileData($file, $configuration));
 
-        switch ($type)
+
+        // @todo - this is built solely for eshops, extend behavior
+        /*
+        if (is_object($data->SHOPITEM))
         {
+            $structure = get_object_vars($data->SHOPITEM[0]);
+        } else
+        {
+            $structure = $data;
+        }
 
-            case 'object':
+        $attributes = $this->attributes->where('namespace', 'sanatorium/shop.product')->get();
 
-                // @todo - this is built solely for eshops, extend behavior
-                if (is_object($data->SHOPITEM))
-                {
-                    $structure = get_object_vars($data->SHOPITEM[0]);
-                } else
-                {
-                    $structure = $data;
-                }
+        $functions = $this->functions;
 
-                $attributes = $this->attributes->where('namespace', 'sanatorium/shop.product')->get();
-
-                $functions = $this->functions;
-
-                $relations = [
-                    'manufacturers',
-                ];
-
-                break;
-
-            case 'assoc':
+        $relations = [
+            'manufacturers',
+        ];
+*/
 
 
-                $structure = array_keys($data[0]);
+        $structure = array_keys($data[0]);
 
-                $attributes = self::userAttributes();
+        $attributes = \Sanatorium\Sync\Controllers\Admin\DictionariesController::optGroupByNamespace(self::userAttributes(), true);
 
-                $functions = [];
+        $functions = [];
 
-                $relations = [];
+        $relations = [];
 
-                foreach( $data as $key => $row ) {
-                    if ( $mime == 'text/plain' )
-                    {
-                        $data[ $key ] = array_map("utf8_encode", $row);
-                    }
-                    else {
-                        $data[ $key ] = $row;
-                    }
-                }
+        foreach( $data as $key => $row ) {
 
-                break;
+            $data[ $key ] = $row;
 
         }
+
 
         if (request()->ajax())
         {
@@ -203,6 +192,11 @@ class SyncController extends AdminController
     {
         $dictionaryentries = app('sanatorium.sync.dictionaryentries');
 
+        $found = $dictionaryentries->where('dictionary_id', $dictionary)->where('options', 'LIKE', '%' . trim(strtolower($col)) . '%')->first();
+
+        if ( $found )
+            return $found->slug;
+
         return null;
     }
 
@@ -233,6 +227,22 @@ class SyncController extends AdminController
 
         $file = request()->file('import');
 
+        // Configuration
+        $configuration = [
+            'delimiter' => request()->get('delimiter'),
+            'enclosure' => request()->get('enclosure'),
+            'newline' => request()->get('newline'),
+            'header_included' => request()->get('header_included'),
+        ];
+
+        $dictionary = request()->get('dictionary');
+
+        $dry = request()->get('dry');
+
+        $invite = request()->get('invite');
+
+        $merge = request()->get('merge');
+
         // Check if file was uploaded
         if (!is_object($file))
         {
@@ -252,14 +262,10 @@ class SyncController extends AdminController
             }
         }
 
-        extract($this->getFileData($file));
+        extract($this->getFileData($file, $configuration));
 
-        switch ($type)
-        {
-
-            case 'object':
-
-                // @todo - this is built solely for eshops, extend behavior
+        /*
+         // @todo - this is built solely for eshops, extend behavior
                 $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
 
                 $connector->seed($data, request()->has('dictionary'), request()->get('types'));
@@ -277,96 +283,88 @@ class SyncController extends AdminController
                     return redirect()->back();
 
                 }
-                break;
+         *
+         */
+        // @todo - this is built solely for crm, extend behavior
+        $types = request()->get('types');
 
-            case 'assoc':
+        $results = [];
 
-                // @todo - this is built solely for crm, extend behavior
-                $types = request()->get('types');
+        $noignores = false;
 
-                // get rid of CSV header row
-                unset($data[0]);
+        // Types are set empty
+        if (empty($types))
+        {
 
-                $results = [];
+            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
 
-                $noignores = false;
+            return redirect()->back();
+        }
 
-                // Types are set empty
-                if (empty($types))
-                {
+        foreach ($types as $type)
+        {
 
-                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
-
-                    return redirect()->back();
-                }
-
-                foreach ($types as $type)
-                {
-
-                    if ($type !== 'ignore')
-                    {
-                        $noignores = true;
-                    }
-
-                }
-
-                // If all available columns are set to ignore
-                if (!$noignores)
-                {
-                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.ignored_or_empty'));
-
-                    return redirect()->back();
-                }
-
-                // There is no data to import
-                if (count($data) == 0)
-                {
-                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
-
-                    return redirect()->back();
-                }
-
-                foreach ($data as $row)
-                {
-
-                    if (empty($row))
-                        continue;
-
-                    if (count($row) == 1)
-                    {
-                        if (empty($row[0]))
-                        {
-                            continue;
-                        }
-                    }
-
-                    $result = $this->createUser($row, $types);
-
-                    $label = '';
-
-                    if (isset($row['email']))
-                        $label = $row['email'] . ' ';
-
-
-                    $results[] = $result;
-
-                }
-
-                $config = app('config')->get('platform-themes');
-
-                // Set the frontend active theme
-                if ($active = array_get($config, 'active.admin'))
-                {
-                    app('themes')->setActive($active);
-                }
-
-                return view('sanatorium/sync::results', compact('results'));
-
-                return redirect()->back();
-
-                break;
+            if ($type !== 'ignore')
+            {
+                $noignores = true;
+            }
 
         }
+
+        // If all available columns are set to ignore
+        if (!$noignores)
+        {
+            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.ignored_or_empty'));
+
+            return redirect()->back();
+        }
+
+        // There is no data to import
+        if (count($data) == 0)
+        {
+            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
+
+            return redirect()->back();
+        }
+
+        foreach ($data as $row)
+        {
+
+            if (empty($row))
+                continue;
+
+            if (count($row) == 1)
+            {
+                if (empty($row[0]))
+                {
+                    continue;
+                }
+            }
+
+            $result = $this->createUser($row, $types, $dry, $invite, $merge);
+
+            $label = '';
+
+            if (isset($row['email']))
+                $label = $row['email'] . ' ';
+
+
+            $results[] = $result;
+
+        }
+
+        $config = app('config')->get('platform-themes');
+
+        // Set the frontend active theme
+        if ($active = array_get($config, 'active.admin'))
+        {
+            app('themes')->setActive($active);
+        }
+
+        return view('sanatorium/sync::results', compact('results'));
+
+        return redirect()->back();
+
 
     }
 
@@ -412,16 +410,16 @@ class SyncController extends AdminController
             [
                 'slug'        => 'company',
                 'type'        => 'input',
-                'name'        => 'Company',
+                'name'        => 'Associated company',
                 'description' => 'Associated corporate',
-                'namespace'   => 'platform/users',
+                'namespace'   => 'general',
             ],
             [
                 'slug'        => 'tags',
                 'type'        => 'array',
                 'name'        => 'Tags',
                 'description' => 'Tags for contact',
-                'namespace'   => 'platform/users',
+                'namespace'   => 'general',
             ],
         ];
 
@@ -434,7 +432,7 @@ class SyncController extends AdminController
         return $all_attributes;
     }
 
-    public function createUser($row, $types = [])
+    public function createUser($row, $types = [], $dry = false, $invite = false, $merge = false)
     {
         $users = app('platform.users');
         $input = [];
@@ -469,6 +467,7 @@ class SyncController extends AdminController
             $key ++;
 
         }
+
 
         if (!isset($input['type']))
         {
@@ -525,16 +524,19 @@ class SyncController extends AdminController
                         'password_confirmation' => $password,
                     ]);
 
-                    $corporate->save();
+                    if ( !$dry ) {
+                        $corporate->save();
 
-                    $corporate = \Sleighdogs\Profile\Models\Corporate::find($corporate->id);
+                        $corporate = \Sleighdogs\Profile\Models\Corporate::find($corporate->id);
 
-                    $corporate->email = $corporate->id . '@yori';
-                    $corporate->brand_name = $value;
+                        $corporate->email = $corporate->id . '@yori';
+                        $corporate->brand_name = $value;
 
-                    $corporate->save();
+                        $corporate->save();
 
-                    $input['root'] = $corporate->id;
+                        $input['root'] = $corporate->id;
+
+                    }
 
                     $infos[] = sprintf('User will be attached to company of the name %s', $value);
                 }
@@ -644,24 +646,54 @@ class SyncController extends AdminController
                     $selected_input['last_name'] = $input['last_name'];
                 }
 
-                // Register the user
-                $user = $users->getSentinel()->{$method}($selected_input);
+                $create_user = 1;
+
+                if ( !$dry ) {
+                    if ($duplicate = $users->whereEmail($input['email'])->first() && !$merge)
+                    {
+                        $duplicate = $users->whereEmail($input['email'])->first();
+
+                        $input['email'] = $user->id . '@yori';
+
+                        $infos[] = sprintf('Duplicate user found %s, newly created user populated with yori specific email', $duplicate->id);
+                    } elseif ( $duplicate = $users->whereEmail($input['email'])->first() ) {
+
+                        $infos[] = sprintf('Duplicate user found %s, newly created user will be merged', $duplicate->id);
+                        $user = $duplicate;
+                        $create_user = 0;
+                    }
+                } elseif ($duplicate = $users->whereEmail($input['email'])->first() && !$merge) {
+                    $duplicate = $users->whereEmail($input['email'])->first();
+
+                    $infos[] = sprintf('Duplicate user found %s, newly created user populated with yori specific email', $duplicate->id);
+                } elseif ($duplicate = $users->whereEmail($input['email'])->first()) {
+                    $infos[] = sprintf('Duplicate user found %s, newly created user will be merged', $duplicate->id);
+                    $user = $duplicate;
+                    $create_user = 0;
+                }
+
+                if ( !$dry && $create_user ) {
+                    // Register the user
+                    $user = $users->getSentinel()->{$method}($selected_input);
+                }
+
+                if ( $dry ) {
+                    $user = new \stdClass;
+                    $user->email = $input['email'];
+                }
 
                 if ($email_generated)
                 {
-                    $user->email = $user->id . '@yori';
-                }
-
-                if ($duplicate = $users->whereEmail($user->email)->where('id', '!=', $user->id)->first())
-                {
-                    $user->email = $user->id . '@yori';
-
-                    $infos[] = sprintf('Duplicate user found %s, newly created user populated with yori specific email', $duplicate->id);
+                    if ( !$dry ) {
+                        $user->email = $user->id . '@yori';
+                    }
                 }
 
                 if (!empty($roles))
                 {
-                    $user->roles()->attach($roles);
+                    if ( !$dry && $create_user == 1 ) {
+                        $user->roles()->attach($roles);
+                    }
                 }
 
                 if (isset($input['type']))
@@ -669,10 +701,16 @@ class SyncController extends AdminController
                     $user->type = $input['type'];
                 } else
                 {
-                    $user->type = 'individual';
+                    if ( isset($input['last_name']) ) {
+                        $user->type = 'individual';
+                    } else {
+                        $user->type = 'corporate';
+                    }
                 }
 
-                $user->save();
+                if ( !$dry ) {
+                    $user->save();
+                }
 
                 if (!isset($input['position']))
                 {
@@ -689,56 +727,96 @@ class SyncController extends AdminController
 
                         $prepared_linked = [];
 
-                        $prepared_linked[ $user->id ] = [
-                            'allowed_to_change' => 1,
-                            'position'          => $input['position'],
-                        ];
+                        if ( !$dry ) {
+                            $prepared_linked[ $user->id ] = [
+                                'allowed_to_change' => 1,
+                                'position'          => $input['position'],
+                            ];
 
-                        $corporate->individuals()->sync($prepared_linked, false);
 
+                            $corporate->individuals()->sync($prepared_linked, false);
+
+                            $corporate->save();
+                        }
+                    }
+                }
+
+                if ($user->type == 'corporate' && !$dry )
+                {
+                    $corporate = \Sleighdogs\Profile\Models\Corporate::find($user->id);
+                    foreach( $input as $key => $value ) {
+                        // @todo - in_array
+                        if ( $key != 'tags' && $key != 'company' && $key != 'root' && $key != 'password_confirmation' && $key != 'gender' && $key != 'internal_notes' && $key != 'custom_social_links' && $key != 'twitter_url' && $key != 'facebook_url' && $key != 'linkedin_url' && $key != 'position' && $key != 'birthday' && $key != 'gender' && $key != 'job_description' && $key != 'personal_phone' && $key != 'office_phone' && $key != 'private_email' && $key != 'work_email' && $key != 'avatar' && $key != 'founder' )
+                            $corporate->{$key} = $value;
+                    }
+                    if ( !$dry ) {
                         $corporate->save();
                     }
                 }
 
-                if ($user->type == 'corporate')
-                {
-                    $corporate = \Sleighdogs\Profile\Models\Corporate::find($user->id);
-                    if (isset($input['brand_name']))
-                    {
-                        $corporate->brand_name = $input['brand_name'];
-                    }
-                    if (isset($input['street']))
-                    {
-                        $corporate->street = $input['street'];
-                    }
-                    if (isset($input['postcode']))
-                    {
-                        $corporate->postcode = $input['postcode'];
-                    }
-                    if (isset($input['city']))
-                    {
-                        $corporate->city = $input['city'];
-                    }
-                    $corporate->save();
-                }
-
-                if ($user->type == 'individual')
+                if ($user->type == 'individual' && !$dry )
                 {
                     $user = \Sleighdogs\Profile\Models\Individual::find($user->id);
-                    if (isset($input['position']))
-                    {
-                        $user->position = $input['position'];
+                    foreach( $input as $key => $value ) {
+                        // @todo - in_array
+                        if ( $key != 'tags' && $key != 'company' && $key != 'root' && $key != 'brand_name' && $key != 'password_confirmation' && $key != 'street' && $key != 'postcode' && $key != 'city' && $key != 'country' && $key != 'logo' && $key != 'short_description' && $key != 'company_custom_social' && $key != 'company_twitter_url' && $key != 'company_facebook_url' && $key != 'company_linkedin_url' && $key != 'general_email' && $key != 'phone' && $key != 'website' && $key != 'official_administrative_name' && $key != 'founding_year' && $key != 'number_of_employees' && $key != 'industry' && $key != 'fax' && $key != 'picture_gallery' && $key != 'links_to_material' && $key != 'short_description' ) {
+
+                            if ( $key == 'gender' && strtolower($value) == 'frau' )
+                            {
+                                $value = 'female';
+                            }
+
+                            if ( $key == 'gender' && strtolower($value) == 'herr' )
+                            {
+                                $value = 'male';
+                            }
+
+                            $user->{$key} = $value;
+                        }
                     }
-                    if (isset($input['gender']))
-                    {
-                        $user->gender = $input['gender'];
+                    if ( !$dry ) {
+                        $user->save();
                     }
-                    $user->save();
                 }
 
                 if ($user->type == 'individual' && isset($corporate))
                 {
-
+                    if (isset($input['website']))
+                    {
+                        $corporate->website = $input['website'];
+                    }
+                    if (isset($input['founding_year']))
+                    {
+                        $corporate->founding_year = $input['founding_year'];
+                    }
+                    if (isset($input['short_description']))
+                    {
+                        $corporate->short_description = $input['short_description'];
+                    }
+                    if (isset($input['industry']))
+                    {
+                        $corporate->industry = $input['industry'];
+                    }
+                    if (isset($input['number_of_employees']))
+                    {
+                        $corporate->number_of_employees = $input['number_of_employees'];
+                    }
+                    if (isset($input['links_to_material']))
+                    {
+                        $corporate->links_to_material = $input['links_to_material'];
+                    }
+                    if (isset($input['phone']))
+                    {
+                        $corporate->phone = $input['phone'];
+                    }
+                    if (isset($input['country']))
+                    {
+                        $corporate->country = $input['country'];
+                    }
+                    if (isset($input['fax']))
+                    {
+                        $corporate->fax = $input['fax'];
+                    }
                     if (isset($input['brand_name']))
                     {
                         $corporate->brand_name = $input['brand_name'];
@@ -755,7 +833,9 @@ class SyncController extends AdminController
                     {
                         $corporate->city = $input['city'];
                     }
-                    $corporate->save();
+                    if ( !$dry ) {
+                        $corporate->save();
+                    }
 
                 }
 
@@ -766,13 +846,25 @@ class SyncController extends AdminController
 
                 if (isset($input['tags']))
                 {
-                    $user->setTags($input['tags']);
+                    if ( !$dry ) {
+                        $user->setTags(strtolower($input['tags']));
+                    }
                 }
 
-                // Fire the 'platform.user.invited' event
-                Event::fire('platform.user.invited', [$user, $password, $data['personal_invite']]);
+                if ( !$dry && $invite && $create_user ) {
+                    // Fire the 'platform.user.invited' event
+                    Event::fire('platform.user.invited', [$user, $password, $data['personal_invite']]);
+                }
 
-                $infos[] = sprintf('User was succesfully created as %s contact', $user->type);
+                if ( $dry ) {
+                    $infos[] = sprintf('User would be created as %s contact', $user->type);
+                } else {
+                    if ( $create_user ) {
+                        $infos[] = sprintf('User was succesfully created as %s contact', $user->type);
+                    } else {
+                        $infos[] = sprintf('User was succesfully merged to %s contact', $user->type);
+                    }
+                }
 
                 return [
                     'errors'  => [],

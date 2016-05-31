@@ -38,8 +38,6 @@ trait DataParser {
                     $result[] = $row;
                 }
 
-                $type = 'assoc';
-
                 break;
 
             // XLS, XLS
@@ -51,16 +49,12 @@ trait DataParser {
 
                 $result = $reader->toArray();
 
-                $type = 'assoc';
-
                 break;
 
             // XML
             case 'application/xml':
 
-                $result = simplexml_load_string( file_get_contents($path), null, LIBXML_NOCDATA );
-
-                $type = 'object';	# object
+                $result = json_decode( json_encode( simplexml_load_string( file_get_contents($path), null, LIBXML_NOCDATA ) ), true );
 
                 break;
 
@@ -73,7 +67,6 @@ trait DataParser {
 
         return [
             'data' => $result,
-            'type' => $type,
             'mime' => $mime,
         ];
     }
