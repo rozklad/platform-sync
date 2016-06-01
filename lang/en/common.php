@@ -19,6 +19,7 @@ return [
     'newline_options' => [
         'breakline' => 'Line break',
     ],
+    'entity'          => 'Entity',
 
     'options' => [
         'use_dictionary' => 'Use default dictionary',

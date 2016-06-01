@@ -104,6 +104,26 @@
 
 				</div>
 
+				<div class="form-group">
+
+					<label class="control-label" for="import">
+
+						{{{ trans('sanatorium/sync::common.entity') }}}
+
+					</label>
+
+					<select name="entity" class="form-control">
+
+						@foreach( $entities as $entity )
+
+							<option value="{{ $entity }}">{{ $entity }}</option>
+
+						@endforeach
+
+					</select>
+
+				</div>
+
 				<div class="row">
 
 					<div class="form-group col-md-4">

@@ -12,7 +12,6 @@ class SyncController extends AdminController
 
     use DataParser;
 
-
     public function index()
     {
         $services = app('sanatorium.sync.formatters')->getServices();
@@ -41,7 +40,10 @@ class SyncController extends AdminController
 
         $dictionaries = app('sanatorium.sync.dictionary')->all();
 
-        return view('sanatorium/sync::index', compact('formatters', 'dictionaries'));
+        // @todo: importable entities dynamically
+        $entities = ['products', 'users'];
+
+        return view('sanatorium/sync::index', compact('formatters', 'dictionaries', 'entities'));
     }
 
     public function refresh($type)
@@ -88,9 +90,10 @@ class SyncController extends AdminController
             'enclosure' => request()->get('enclosure'),
             'newline' => request()->get('newline'),
             'header_included' => request()->get('header_included'),
+            'entity' => request()->get('entity'),
+            'dictionary' => request()->get('dictionary'),
         ];
 
-        $dictionary = request()->get('dictionary');
 
         // Check if file was uploaded
         if (!is_object($file))
@@ -148,7 +151,7 @@ class SyncController extends AdminController
         {
 
             return [
-                'structure'  => self::guessTypes($structure, $dictionary),
+                'structure'  => self::guessTypes($structure, $configuration['dictionary']),
                 'attributes' => $attributes,
                 'functions'  => $functions,
                 'relations'  => $relations,
@@ -196,9 +199,9 @@ class SyncController extends AdminController
             'enclosure' => request()->get('enclosure'),
             'newline' => request()->get('newline'),
             'header_included' => request()->get('header_included'),
+            'entity' => request()->get('entity'),
+            'dictionary' => request()->get('dictionary'),
         ];
-
-        $dictionary = request()->get('dictionary');
 
         $dry = request()->get('dry');
 
@@ -227,8 +230,12 @@ class SyncController extends AdminController
 
         extract($this->getFileData($file, $configuration));
 
-        /*
-         // @todo - this is built solely for eshops, extend behavior
+        // @todo: move cases to methods
+        switch( $configuration['entity'] )
+        {
+
+            case 'products':
+
                 $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
 
                 $connector->seed($data, request()->has('dictionary'), request()->get('types'));
@@ -246,85 +253,92 @@ class SyncController extends AdminController
                     return redirect()->back();
 
                 }
-         *
-         */
-        // @todo - this is built solely for crm, extend behavior
-        $types = request()->get('types');
 
-        $results = [];
+                break;
 
-        $noignores = false;
+            case 'users':
 
-        // Types are set empty
-        if (empty($types))
-        {
+                // @todo - this is built solely for crm, extend behavior
+                $types = request()->get('types');
 
-            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
+                $results = [];
 
-            return redirect()->back();
-        }
+                $noignores = false;
 
-        foreach ($types as $type)
-        {
-
-            if ($type !== 'ignore')
-            {
-                $noignores = true;
-            }
-
-        }
-
-        // If all available columns are set to ignore
-        if (!$noignores)
-        {
-            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.ignored_or_empty'));
-
-            return redirect()->back();
-        }
-
-        // There is no data to import
-        if (count($data) == 0)
-        {
-            $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
-
-            return redirect()->back();
-        }
-
-        foreach ($data as $row)
-        {
-
-            if (empty($row))
-                continue;
-
-            if (count($row) == 1)
-            {
-                if (empty($row[0]))
+                // Types are set empty
+                if (empty($types))
                 {
-                    continue;
+
+                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
+
+                    return redirect()->back();
                 }
-            }
 
-            $result = $this->createUser($row, $types, $dry, $invite, $merge);
+                foreach ($types as $type)
+                {
 
-            $label = '';
+                    if ($type !== 'ignore')
+                    {
+                        $noignores = true;
+                    }
 
-            if (isset($row['email']))
-                $label = $row['email'] . ' ';
+                }
+
+                // If all available columns are set to ignore
+                if (!$noignores)
+                {
+                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.ignored_or_empty'));
+
+                    return redirect()->back();
+                }
+
+                // There is no data to import
+                if (count($data) == 0)
+                {
+                    $this->alerts->error(trans('sanatorium/sync::common.messages.errors.empty'));
+
+                    return redirect()->back();
+                }
+
+                foreach ($data as $row)
+                {
+
+                    if (empty($row))
+                        continue;
+
+                    if (count($row) == 1)
+                    {
+                        if (empty($row[0]))
+                        {
+                            continue;
+                        }
+                    }
+
+                    $result = $this->createUser($row, $types, $dry, $invite, $merge);
+
+                    $label = '';
+
+                    if (isset($row['email']))
+                        $label = $row['email'] . ' ';
 
 
-            $results[] = $result;
+                    $results[] = $result;
+
+                }
+
+                $config = app('config')->get('platform-themes');
+
+                // Set the frontend active theme
+                if ($active = array_get($config, 'active.admin'))
+                {
+                    app('themes')->setActive($active);
+                }
+
+                return view('sanatorium/sync::results', compact('results'));
+
+                break;
 
         }
-
-        $config = app('config')->get('platform-themes');
-
-        // Set the frontend active theme
-        if ($active = array_get($config, 'active.admin'))
-        {
-            app('themes')->setActive($active);
-        }
-
-        return view('sanatorium/sync::results', compact('results'));
 
         return redirect()->back();
 

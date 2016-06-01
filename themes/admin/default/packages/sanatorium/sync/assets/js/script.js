@@ -22,6 +22,7 @@ $(function(){
 		data.append('enclosure', $('[name="enclosure"]').val());
 		data.append('newline', $('[name="newline"]').val());
 		data.append('dictionary', $('[name="dictionary"]').val());
+		data.append('entity', $('[name="entity"]').val());
 
 		$.ajax({
 			url: action,
