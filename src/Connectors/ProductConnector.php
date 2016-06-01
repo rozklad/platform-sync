@@ -28,6 +28,9 @@ class ProductConnector {
 		{
 			$index++;
 
+			if ( $index < 1750 )
+				continue;
+
 			$obj = new Product;
 
 			foreach( $product as $key => $value ) 
