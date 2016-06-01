@@ -236,6 +236,11 @@ class SyncController extends AdminController
 
             case 'products':
 
+                if ( isset($data['SHOPITEM']) )
+                {
+                    $data = $data['SHOPITEM'];
+                }
+
                 $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
 
                 $connector->seed($data, request()->has('dictionary'), request()->get('types'));
