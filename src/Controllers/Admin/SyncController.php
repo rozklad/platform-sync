@@ -229,7 +229,7 @@ class SyncController extends AdminController
         }
 
         extract($this->getFileData($file, $configuration));
-
+  
         // @todo: move cases to methods
         switch( $configuration['entity'] )
         {

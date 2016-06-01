@@ -427,11 +427,11 @@
 	</div>
 	@endif
 
-</form>
+	<div class="table-responsive">
+		<table class="table table-striped" id="results-table"></table>
+	</div>
 
-<div class="table-responsive">
-	<table class="table table-striped" id="results-table"></table>
-</div>
+</form>
 
 @stop
 

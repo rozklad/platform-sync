@@ -1,6 +1,7 @@
 <?php namespace Sanatorium\Sync\Connectors;
 
 use Product;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ProductConnector {
 
@@ -9,6 +10,7 @@ class ProductConnector {
 		'description' => 'product_description',
 		'product' => 'product_title',
 		'productno' => 'code',
+		'url' => 'old_url',
 	];
 
 	public $default_attribute_type = 'input';
@@ -19,8 +21,13 @@ class ProductConnector {
 
 		$categorizing = class_exists('Category');
 
-		foreach( $products as $product ) 
+		// Count of processed entries
+		$index = 0;
+
+		foreach( $products as $product )
 		{
+			$index++;
+
 			$obj = new Product;
 
 			foreach( $product as $key => $value ) 
@@ -54,7 +61,8 @@ class ProductConnector {
 						break;
 
 						case strpos($setup[$key], 'attribute.') !== false:
-							$obj->{$normalized_key} = (string)$value;
+							if ( is_string($value) )
+								$obj->{$normalized_key} = (string)$value;
 						break;
 
 						case strpos($setup[$key], 'functions.') !== false:
@@ -71,14 +79,12 @@ class ProductConnector {
 								$this->{$relation}($obj, [$value], $setup[$key]);
 							}
 
-							
 						break;
 					}
 
 				}
 			}
 
-			$obj->save();
 			$obj->resluggify();
 			$obj->save();
 		}
@@ -98,7 +104,8 @@ class ProductConnector {
 
 			$i++;
 
-			$obj->addRemoteMedia($url, $i==1);
+			// @todo: prepare for multiple files
+			//$this->addRemoteMedia($url, $i==1);
 		}
 	}
 
@@ -110,7 +117,8 @@ class ProductConnector {
 
 		$url = (string)$value;
 
-		$obj->addRemoteMedia($url, 1);
+		if ( $medium_id = $this->addRemoteMedia($url, 1) )
+			$obj->product_cover = $medium_id;
 	}
 
 	public function priceVat($obj, $value, $key)
@@ -156,6 +164,36 @@ class ProductConnector {
 		}
 
 		return $normalized_key;
+	}
+
+	public function addRemoteMedia($file_url = null, $cover = false, $input = [])
+	{
+		if ( empty($file_url) ) return false;
+
+		$contents = @file_get_contents($file_url);
+
+		if ( empty($contents) ) return false;
+
+		$temp_dir = __DIR__ . '/temp/';
+
+		if ( !file_exists($temp_dir) )
+		{
+			mkdir($temp_dir, 0777, 1);
+			chmod($temp_dir, 0777);
+		}
+
+		$temp_path = $temp_dir . basename($file_url);
+
+		file_put_contents($temp_path, $contents);
+
+		$uploaded = new UploadedFile($temp_path, basename($file_url));
+
+		$medium = app('platform.media')->upload($uploaded, ['tags' => []]);
+
+		// Delete temporary file
+		unlink($temp_path);
+
+		return $medium->id;
 	}
 
 }
