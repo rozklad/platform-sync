@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'version' => '1.0.9',
+    'version' => '1.1.0',
 
     /*
     |--------------------------------------------------------------------------
@@ -370,30 +370,33 @@ return [
 
                 $services = app('sanatorium.sync.formatters')->getServices();
 
-                foreach ($services as $key => $item)
+                if (is_array($services) )
                 {
-
-                    $f->field($key, function ($f) use ($item, $key)
+                    foreach ( $services as $key => $item )
                     {
-                        $f->name = trans('sanatorium/sync::settings.exports_disabled') . ' : ' . $item->title;
-                        $f->info = $key;
-                        $f->type = 'radio';
-                        $f->config = 'sanatorium-sync.exports_disabled.' . $key;
 
-                        $f->option('yes', function ($o)
+                        $f->field($key, function ($f) use ($item, $key)
                         {
-                            $o->value = true;
-                            $o->label = trans('common.disabled');
+                            $f->name = trans('sanatorium/sync::settings.exports_disabled') . ' : ' . $item->title;
+                            $f->info = $key;
+                            $f->type = 'radio';
+                            $f->config = 'sanatorium-sync.exports_disabled.' . $key;
+
+                            $f->option('yes', function ($o)
+                            {
+                                $o->value = true;
+                                $o->label = trans('common.disabled');
+                            });
+
+                            $f->option('no', function ($o)
+                            {
+                                $o->value = false;
+                                $o->label = trans('common.enabled');
+                            });
+
                         });
 
-                        $f->option('no', function ($o)
-                        {
-                            $o->value = false;
-                            $o->label = trans('common.enabled');
-                        });
-
-                    });
-
+                    }
                 }
 
             });
