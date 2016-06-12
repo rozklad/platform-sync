@@ -28,9 +28,6 @@ class ProductConnector {
 		{
 			$index++;
 
-			if ( $index < 1750 )
-				continue;
-
 			$obj = new Product;
 
 			foreach( $product as $key => $value ) 
@@ -101,15 +98,27 @@ class ProductConnector {
 
 		$i = 0;
 
-		foreach( $value->IMGURL as $media ) 
+		$gallery = [];
+
+		foreach( $value['IMGURL'] as $media )
 		{
 			$url = (string)$media;
 
 			$i++;
 
-			// @todo: prepare for multiple files
-			//$this->addRemoteMedia($url, $i==1);
+			$medium_id = $this->addRemoteMedia($url);
+
+			if ( $i==1 )
+			{
+
+				$obj->product_cover = $medium_id;
+
+			}
+
+			$gallery[] = $medium_id;
 		}
+
+		$obj->product_gallery = $gallery;
 	}
 
 	public function imgurl($obj, $value, $key)
@@ -120,7 +129,7 @@ class ProductConnector {
 
 		$url = (string)$value;
 
-		if ( $medium_id = $this->addRemoteMedia($url, 1) )
+		if ( $medium_id = $this->addRemoteMedia($url) )
 			$obj->product_cover = $medium_id;
 	}
 
@@ -169,7 +178,7 @@ class ProductConnector {
 		return $normalized_key;
 	}
 
-	public function addRemoteMedia($file_url = null, $cover = false, $input = [])
+	public function addRemoteMedia($file_url = null)
 	{
 		if ( empty($file_url) ) return false;
 
