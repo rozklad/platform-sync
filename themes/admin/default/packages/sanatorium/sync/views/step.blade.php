@@ -16,15 +16,12 @@
 
         function importItem(number) {
 
-
             var dictionary = {{ $dictionary }},
                 types = {
                     @foreach( $types as $key => $value )
                         "{{ $key }}" : "{{ $value }}",
                     @endforeach
                 };
-
-            console.log(number);
 
             $.ajax({
                 type: 'POST',
