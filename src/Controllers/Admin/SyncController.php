@@ -188,7 +188,33 @@ class SyncController extends AdminController
         return null;
     }
 
-    public function setup()
+    public function step()
+    {
+
+        $number = request()->get('number');
+
+        $filename = request()->get('filename');
+
+        $data = json_decode(file_get_contents(__DIR__ . '/' . $filename), true);
+
+        if ( !isset($data[$number]) )
+            return ['done' => true];
+
+        $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
+
+        $connector->seedItem($data[$number], request()->has('dictionary'), request()->get('types'));
+
+        return [
+            'number' => $number,
+            'dictionary' => request()->has('dictionary'),
+            'types' => request()->get('types'),
+            'done' => false,
+            'total' => count($data)
+        ];
+
+    }
+
+    public function setup($one_at_time = true)
     {
 
         $file = request()->file('import');
@@ -241,14 +267,29 @@ class SyncController extends AdminController
                     $data = $data['SHOPITEM'];
                 }
 
-                $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
+                if ( !$one_at_time )
+                {
+                    $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
 
-                $connector->seed($data, request()->has('dictionary'), request()->get('types'));
+                    $connector->seed($data, request()->has('dictionary'), request()->get('types'));
+                } else {
+
+                    $filename = time() . '.json';
+
+                    file_put_contents(__DIR__ . '/' . $filename, json_encode($data));
+
+                    return view('sanatorium/sync::step', [
+                        'dictionary'    => (int)request()->has('dictionary'),
+                        'types'             => request()->get('types'),
+                        'filename'          => $filename
+                    ]);
+
+                }
 
                 if (request()->ajax())
                 {
 
-                    return response('Succes');
+                    return response('Success');
 
                 } else
                 {

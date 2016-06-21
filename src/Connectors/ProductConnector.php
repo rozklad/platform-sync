@@ -15,6 +15,7 @@ class ProductConnector {
 
 	public $default_attribute_type = 'input';
 
+	// Comment
 	public function seed($products, $use_dictionary = true, $setup = [])
 	{
 		$this->attributes = app('Platform\Attributes\Repositories\AttributeRepositoryInterface');
@@ -22,72 +23,85 @@ class ProductConnector {
 		$categorizing = class_exists('Category');
 
 		// Count of processed entries
-		$index = 0;
-
 		foreach( $products as $product )
 		{
-			$index++;
-
-			$obj = new Product;
-
-			foreach( $product as $key => $value ) 
-			{
-				$normalized_key = $this->translateKey( self::normalizeKey($key) );
-
-				if ( isset($setup[$key]) ) 
-				{
-					switch( true ) 
-					{
-						case $setup[$key] == 'ignore':
-							continue;
-						break;
-
-						case $setup[$key] == 'create_attribute':
-							
-							$attribute_exists = $this->attributes->where('slug', $normalized_key)->count() > 0;
-
-							if ( !$attribute_exists ) {
-								$this->attributes->create([
-									'namespace' 	=> Product::getEntityNamespace(),
-				                    'name'      	=> $normalized_key,
-				                    'description'	=> $normalized_key,
-				                    'type'      	=> $this->default_attribute_type,
-				                    'slug'      	=> $normalized_key,
-				                    'enabled'   	=> 1,
-									]);
-							}
-
-							$obj->{$normalized_key} = $value;
-						break;
-
-						case strpos($setup[$key], 'attribute.') !== false:
-							if ( is_string($value) )
-								$obj->{$normalized_key} = (string)$value;
-						break;
-
-						case strpos($setup[$key], 'functions.') !== false:
-							$function = str_replace('functions.', '', $setup[$key]);
-							$value = $this->$function( $obj, $value, $normalized_key );
-						break;
-
-						case strpos($setup[$key], 'relations.') !== false:
-							$relation = str_replace('relations.', '', $setup[$key]);
-
-							if ( is_array($value) ) {
-								$this->{$relation}($obj, $value, $setup[$key]);
-							} else {
-								$this->{$relation}($obj, [$value], $setup[$key]);
-							}
-
-						break;
-					}
-
-				}
-			}
-
-			$obj->resluggify();
-			$obj->save();
+			$this->seedItem($product, $use_dictionary, $setup, $categorizing);
 		}
+	}
+
+	public function seedItem($product, $use_dictionary = true, $setup = [], $categorizing = null)
+	{
+		if ( !isset($this->attributes) )
+			$this->attributes = app('Platform\Attributes\Repositories\AttributeRepositoryInterface');
+
+		if ( is_null($categorizing) )
+			$categorizing = class_exists('Category');
+
+		$obj = new Product;
+
+		foreach( $product as $key => $value )
+		{
+			$normalized_key = $this->translateKey( self::normalizeKey($key) );
+
+			if ( isset($setup[$key]) )
+			{
+				switch( true )
+				{
+					case $setup[$key] == 'ignore':
+						continue;
+						break;
+
+					case $setup[$key] == 'create_attribute':
+
+						$attribute_exists = $this->attributes->where('slug', $normalized_key)->count() > 0;
+
+						if ( !$attribute_exists ) {
+							$this->attributes->create([
+								'namespace' 	=> Product::getEntityNamespace(),
+								'name'      	=> $normalized_key,
+								'description'	=> $normalized_key,
+								'type'      	=> $this->default_attribute_type,
+								'slug'      	=> $normalized_key,
+								'enabled'   	=> 1,
+							]);
+						}
+
+						$obj->{$normalized_key} = $value;
+						break;
+
+					case strpos($setup[$key], 'attribute.') !== false:
+						if ( is_string($value) )
+							$obj->{$normalized_key} = (string)$value;
+						break;
+
+					case strpos($setup[$key], 'functions.') !== false:
+						$function = str_replace('functions.', '', $setup[$key]);
+						$value = $this->$function( $obj, $value, $normalized_key );
+						break;
+
+					case strpos($setup[$key], 'relations.') !== false:
+						$relation = str_replace('relations.', '', $setup[$key]);
+
+						if ( is_array($value) ) {
+							$this->{$relation}($obj, $value, $setup[$key]);
+						} else {
+							$this->{$relation}($obj, [$value], $setup[$key]);
+						}
+
+						break;
+				}
+
+			}
+		}
+
+		$obj->resluggify();
+		$obj->save();
+
+		$obj->regenerateThumbnails();
+
+		return [
+			'obj' => $obj
+		];
 	}
 
 	public function mediaArray($obj, $value, $key)

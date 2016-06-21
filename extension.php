@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'version' => '1.1.0',
+    'version' => '1.1.1',
 
     /*
     |--------------------------------------------------------------------------
@@ -160,6 +160,8 @@ return [
             Route::post('setup', ['as' => 'admin.sanatorium.sync.setup', 'uses' => 'SyncController@setup']);
 
             Route::get('refresh/{type}', ['as' => 'sanatorium.sync.export.refresh', 'uses' => 'SyncController@refresh']);
+
+            Route::any('step', ['as' => 'sanatorium.sync.export.step', 'uses' => 'SyncController@step']);
         });
 
         Route::group([
