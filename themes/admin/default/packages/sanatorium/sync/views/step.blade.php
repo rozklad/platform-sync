@@ -34,7 +34,7 @@
                 }
             }).success(function(msg){
 
-                $('#results').append('<div class="well">' + msg.number + '/' + msg.total + '</div>');
+                $('#results').append('<div class="well well-sm">' + msg.number + '/' + msg.total + '</div>');
 
                 if ( msg.done == true ) {
                     alert('Finised');
@@ -43,16 +43,42 @@
                     importItem(number);
                 }
 
+                var percent = (msg.number/msg.total) * 100;
+
+                $('#overall-progress .progress-bar').css('width', percent + '%');
 
             }).error(function(msg){
-                alert(msg);
+
+                alert('Import failed, see console for more information');
                 console.log(msg);
+
+                $('#results').prepend('<div class="well" data-number="'+number+'"><button type="button" class="btn btn-default" data-sync="retry">Retry</button> <button type="button" class="btn btn-default" data-sync="continue">Continue</button></div>');
+
+                $('[data-sync]').not('.activated').click(function(event){
+
+                    var operation = $(this).data('sync'),
+                        number = $(this).parents('.well:first').data('number');
+
+                    switch( operation ) {
+                        case 'retry':
+                            importItem( number );
+                        break;
+
+                        case 'continue':
+                            importItem( number + 1 );
+                        break;
+                    }
+
+                }).addClass('activated');
+
+
             });
         }
 
         $(function(){
 
-            importItem(0);
+            // @todo: delete this 435,623,647
+            importItem(888);
 
         });
     </script>
@@ -67,9 +93,24 @@
 {{-- Page content --}}
 @section('page')
 
-    <div id="results">
+    <div class="panel panel-default">
+        <header class="panel-heading">
 
+        </header>
+        <div class="panel-body">
+            <div class="progress" id="overall-progress">
+                <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0;">
+                    <span class="sr-only">0% Complete</span>
+                </div>
+            </div>
+
+            <div id="results">
+
+            </div>
+        </div>
     </div>
+
+
 
 @stop
 
