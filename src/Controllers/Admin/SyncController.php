@@ -202,14 +202,16 @@ class SyncController extends AdminController
 
         $connector = new \Sanatorium\Sync\Connectors\ProductConnector;
 
-        $connector->seedItem($data[$number], request()->has('dictionary'), request()->get('types'));
+        $object = $connector->seedItem($data[$number], request()->has('dictionary'), request()->get('types'));
 
         return [
             'number' => $number,
             'dictionary' => request()->has('dictionary'),
             'types' => request()->get('types'),
             'done' => false,
-            'total' => count($data)
+            'total' => count($data),
+            'img' => $object->hasCoverImage() ? $object->coverThumb() : null,
+            'categories' => $object->categories
         ];
 
     }

@@ -18,7 +18,13 @@ class CategoryConnector {
 			$category_name = trim($category_name);
 			$category_slug = str_slug($category_name);
 
-			$category = Category::where('slug', $category_slug)->first();
+			$category = Category::where('slug', $category_slug);
+
+			if ( !is_null($parent) ) {
+				$category = $category->where('parent', $parent->id);
+			}
+
+			$category = $category->first();
 
 			if ( !$category ) {
 				$category = new Category;

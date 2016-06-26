@@ -99,9 +99,7 @@ class ProductConnector {
 
 		$obj->regenerateThumbnails();
 
-		return [
-			'obj' => $obj
-		];
+		return $obj;
 	}
 
 	public function mediaArray($obj, $value, $key)
@@ -196,6 +194,14 @@ class ProductConnector {
 	{
 		if ( empty($file_url) ) return false;
 
+		$basename = basename($file_url);
+
+		$repo = app('platform.media');
+
+		// Already uploaded
+		if ( $downloaded = $repo->whereName($basename)->first() )
+			return $downloaded->id;
+
 		$contents = @file_get_contents($file_url);
 
 		if ( empty($contents) ) return false;
@@ -208,13 +214,13 @@ class ProductConnector {
 			chmod($temp_dir, 0777);
 		}
 
-		$temp_path = $temp_dir . basename($file_url);
+		$temp_path = $temp_dir . $basename;
 
 		file_put_contents($temp_path, $contents);
 
 		$uploaded = new UploadedFile($temp_path, basename($file_url));
 
-		$medium = app('platform.media')->upload($uploaded, ['tags' => []]);
+		$medium = $repo->upload($uploaded, ['tags' => []]);
 
 		// Delete temporary file
 		unlink($temp_path);

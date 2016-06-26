@@ -34,7 +34,7 @@
                 }
             }).success(function(msg){
 
-                $('#results').append('<div class="well well-sm">' + msg.number + '/' + msg.total + '</div>');
+                $('#results').append('<div class="well well-sm"><img src="' + msg.img + '"> <p>' + msg.categories.join(',') + '</p> <p>' + msg.number + '/' + msg.total + '</p></div>');
 
                 if ( msg.done == true ) {
                     alert('Finised');
@@ -77,8 +77,7 @@
 
         $(function(){
 
-            // @todo: delete this 435,623,647
-            importItem(888);
+            importItem(0);
 
         });
     </script>
