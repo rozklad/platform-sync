@@ -39,6 +39,9 @@
 	"autoload": {
 		"classmap": [
 		],
+		"files": [
+			"src/helpers.php"
+		],
 		"psr-4": {
 			"Sanatorium\\Sync\\": "src/"
 		}

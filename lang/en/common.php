@@ -55,4 +55,6 @@ return [
 
     ],
 
+    'max_allowed_size' => 'Maximum allowed file size is :size',
+
 ];

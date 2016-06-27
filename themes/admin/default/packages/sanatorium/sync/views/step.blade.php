@@ -34,7 +34,7 @@
                 }
             }).success(function(msg){
 
-                $('#results').append('<div class="well well-sm"><img src="' + msg.img + '"> <p>' + msg.categories.join(',') + '</p> <p>' + msg.number + '/' + msg.total + '</p></div>');
+                $('#results').prepend('<div class="well well-sm"><img src="' + msg.img + '"> <p>' + msg.number + '/' + msg.total + '</p></div>');
 
                 if ( msg.done == true ) {
                     alert('Finised');
@@ -77,8 +77,9 @@
 
         $(function(){
 
-            importItem(0);
-
+            // revert to 0
+            importItem(785);
+    //
         });
     </script>
     @parent

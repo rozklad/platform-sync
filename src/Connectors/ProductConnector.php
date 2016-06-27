@@ -112,7 +112,14 @@ class ProductConnector {
 
 		$gallery = [];
 
-		foreach( $value['IMGURL'] as $media )
+		if ( isset($value['IMGURL']) )
+			$array = $value['IMGURL'];
+		elseif ( is_array($value) )
+			$array = $value;
+		elseif ( is_string($value) )
+			$array = [$value];
+
+		foreach( $array as $media )
 		{
 			$url = (string)$media;
 
@@ -135,14 +142,27 @@ class ProductConnector {
 
 	public function imgurl($obj, $value, $key)
 	{
-		if ( !$obj->id ) {
-			$obj->save();
+		// Never trust user input, if imgurl is array after all...
+		if ( is_array($value) ) {
+			foreach( $value as $img ) {
+				$this->imgurl($obj, $value, $key);
+			}
+		} else
+		{
+			if ( !$obj->id )
+			{
+				$obj->save();
+			}
+
+			$url = (string) $value;
+
+			$medium_id = $this->addRemoteMedia($url);
+
+			if ( !$obj->hasCoverImage() )
+				$obj->product_cover = $medium_id;
+			else
+				$obj->product_gallery = [$medium_id];
 		}
-
-		$url = (string)$value;
-
-		if ( $medium_id = $this->addRemoteMedia($url) )
-			$obj->product_cover = $medium_id;
 	}
 
 	public function priceVat($obj, $value, $key)
@@ -198,6 +218,10 @@ class ProductConnector {
 
 		$repo = app('platform.media');
 
+		$original_file_url = $file_url;
+
+		$file_url = self::removeCommonAppendix($file_url);
+
 		// Already uploaded
 		if ( $downloaded = $repo->whereName($basename)->first() )
 			return $downloaded->id;
@@ -226,6 +250,44 @@ class ProductConnector {
 		unlink($temp_path);
 
 		return $medium->id;
+	}
+
+
+	/**
+	 * As seen in "http://www.gamlery.cz/deploy/img/products/2456/2456.jpg?modified=1465976639"
+	 * We want to prevent this, but we dont want to prevent http://example.tld/pictures?id=71455 to be removed
+	 * @param null $file_url
+	 * @return string
+	 */
+	public static function removeCommonAppendix($file_url = null)
+	{
+		switch( true ) {
+
+			case (strpos($file_url, '.jpg?') !== false):
+				$var = explode('.jpg?', $file_url);
+				return $var[0] . '.jpg';
+
+				break;
+
+			case (strpos($file_url, '.png?') !== false):
+				$var = explode('.png?', $file_url);
+				return $var[0] . '.png';
+
+				break;
+
+			case (strpos($file_url, '.gif?') !== false):
+				$var = explode('.gif?', $file_url);
+				return $var[0] . '.gif';
+
+				break;
+
+			case (strpos($file_url, '.bmp?') !== false):
+				$var = explode('.bmp?', $file_url);
+				return $var[0] . '.bmp';
+
+				break;
+
+		}
 	}
 
 }

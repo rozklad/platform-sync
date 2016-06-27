@@ -36,4 +36,6 @@ return [
 
 	],
 
+	'max_allowed_size' => 'Maximální dovolená velikost souboru je :size',
+
 ];
