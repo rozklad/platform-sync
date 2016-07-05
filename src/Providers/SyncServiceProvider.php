@@ -19,6 +19,8 @@ class SyncServiceProvider extends ServiceProvider {
 		$this->prepareResources();
 
 		$this->registerLaravelExcel();
+
+		$this->registerPlugins();
 	}
 
 	/**
@@ -82,6 +84,43 @@ class SyncServiceProvider extends ServiceProvider {
 			return false;
 
 		return true;
+	}
+
+	public function registerPlugins()
+	{
+		try
+		{
+			// Register the attributes namespace
+			$this->app['sanatorium.sync.formatters']->registerService(
+				'heureka', 'Sanatorium\Sync\Plugins\Heureka\Formatters\HeurekaFormatter'
+			);
+
+			// Register the heureka stock usage
+			$this->app['sanatorium.stock.usages']->registerService(
+				'heureka', 'Sanatorium\Sync\Plugins\Heureka\Usages\HeurekaUsage'
+			);
+
+			// Register the attributes namespace
+			$this->app['sanatorium.sync.formatters']->registerService(
+				'zbozi', 'Sanatorium\Sync\Plugins\Zbozi\Formatters\ZboziFormatter'
+			);
+
+			// Register the zbozi stock usage
+			$this->app['sanatorium.stock.usages']->registerService(
+				'zbozi', 'Sanatorium\Sync\Plugins\Zbozi\Usages\ZboziUsage'
+			);
+
+			// Register the attributes namespace
+			$this->app['sanatorium.sync.formatters']->registerService(
+				'pricelist', 'Sanatorium\Sync\Plugins\Pricelist\Formatters\PricelistFormatter'
+			);
+		} catch (ReflectionException $e)
+		{
+			// If any of the classes above cannot be registered to their
+			// respective manager, system will not fail, but this
+			// extension will most probably not work correctly
+			Log::error('sync: ' . $e->getMessage() . ', extension will not work properly');
+		}
 	}
 
 }
