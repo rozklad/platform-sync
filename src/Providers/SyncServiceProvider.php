@@ -149,7 +149,7 @@ class SyncServiceProvider extends ServiceProvider {
 			// If any of the classes above cannot be registered to their
 			// respective manager, system will not fail, but this
 			// extension will most probably not work correctly
-			Log::error('sync: ' . $e->getMessage() . ', extension will not work properly');
+			\Log::error('sync: ' . $e->getMessage() . ', extension will not work properly');
 		}
 	}
 
