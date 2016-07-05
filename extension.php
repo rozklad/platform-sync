@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'version' => '1.2.4',
+    'version' => '1.2.5',
 
     /*
     |--------------------------------------------------------------------------
@@ -378,7 +378,7 @@ return [
 
                         $f->field($key, function ($f) use ($item, $key)
                         {
-                            $f->name = trans('sanatorium/sync::settings.exports_disabled') . ' : ' . $item->title;
+                            $f->name = trans('sanatorium/sync::settings.exports_disabled') . ' : ' . $key;
                             $f->info = $key;
                             $f->type = 'radio';
                             $f->config = 'sanatorium-sync.exports_disabled.' . $key;
