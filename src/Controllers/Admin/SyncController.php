@@ -25,6 +25,8 @@ class SyncController extends AdminController
 
                 $is_disabled = config('sanatorium-sync.exports_disabled.' . $key);
 
+                $item = app($item);
+
                 if ( $is_disabled )
                     continue;
 
@@ -74,7 +76,7 @@ class SyncController extends AdminController
 
         foreach ( $formatters as $key => $formatter )
         {
-            $results[ $key ] = app($formatter->refresh());
+            $results[ $key ] = app($formatter)->refresh();
         }
 
         return $results;

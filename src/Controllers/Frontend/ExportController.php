@@ -28,7 +28,7 @@ class ExportController extends Controller {
 		if ( ! isset($formatters[$type]) )
 			return 'Unknown provider ' . $type . '';
 
-		$formatter = $formatters[$type];
+		$formatter = app($formatters[$type]);
 
 		return $formatter->export($this->products);
 	}

@@ -4,6 +4,7 @@ use File;
 use Response;
 use URL;
 use Sanatorium\Shop\Repositories\Product\ProductRepositoryInterface;
+use StorageUrl;
 
 class Formatter {
 
@@ -126,7 +127,26 @@ class Formatter {
 
 	public static function escape($object, $value = null)
 	{
-		return htmlspecialchars($value);
+		return
+			trim(
+				preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x80-\x9F]/u', '',
+					str_replace([
+						'•',			// Replacables
+						'„',
+						'“',
+					],
+					[
+						'',				// Replaces
+						'',
+						'',
+					],
+					htmlspecialchars(
+						strip_tags($value),
+						ENT_XML1,
+						'UTF-8'
+					))
+				)
+			);
 	}
 
 	public static function categorytext($object, $value = null)
@@ -162,7 +182,7 @@ class Formatter {
 
 	public static function cover_image($object, $value = null)
 	{
-		return URL::to($object->cover_image_url);
+		return StorageUrl::url($object->coverThumb());
 	}
 
 	public static function deliverydate($object, $value = null)
