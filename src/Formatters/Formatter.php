@@ -43,7 +43,7 @@ class Formatter {
 
 	public function getFilepath()
 	{
-		return storage_path( $this->folder );
+		return storage_path( $this->folder . config('cartalyst.filesystem.connections.awss3.prefix') . '/' );
 	}
 
 	public function getFilemtime()
@@ -130,21 +130,11 @@ class Formatter {
 		return
 			trim(
 				preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x80-\x9F]/u', '',
-					str_replace([
-						'•',			// Replacables
-						'„',
-						'“',
-					],
-					[
-						'',				// Replaces
-						'',
-						'',
-					],
 					htmlspecialchars(
 						strip_tags($value),
 						ENT_XML1,
 						'UTF-8'
-					))
+					)
 				)
 			);
 	}
@@ -182,7 +172,7 @@ class Formatter {
 
 	public static function cover_image($object, $value = null)
 	{
-		return StorageUrl::url($object->coverThumb());
+		return $object->coverThumb();
 	}
 
 	public static function deliverydate($object, $value = null)
