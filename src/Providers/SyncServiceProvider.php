@@ -144,7 +144,7 @@ class SyncServiceProvider extends ServiceProvider {
 			$this->app['sanatorium.sync.formatters']->registerService(
 				'pricelist', 'Sanatorium\Sync\Plugins\Pricelist\Formatters\PricelistFormatter'
 			);
-		} catch (ReflectionException $e)
+		} catch (\ReflectionException $e)
 		{
 			// If any of the classes above cannot be registered to their
 			// respective manager, system will not fail, but this
