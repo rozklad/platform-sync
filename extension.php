@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'version' => '1.2.2',
+    'version' => '1.2.3',
 
     /*
     |--------------------------------------------------------------------------
@@ -127,8 +127,6 @@ return [
     'providers' => [
 
         'Sanatorium\Sync\Providers\SyncServiceProvider',
-        'Sanatorium\Sync\Providers\DictionaryServiceProvider',
-        'Sanatorium\Sync\Providers\DictionaryentriesServiceProvider',
 
     ],
 

@@ -16,6 +16,12 @@ class SyncServiceProvider extends ServiceProvider {
 		// Register the manager
         $this->bindIf('sanatorium.sync.formatters', 'Sanatorium\Sync\Repositories\Formatters\FormattersRepository');
 
+		// Subscribe the registered event handler
+		$this->app['events']->subscribe('sanatorium.sync.dictionary.handler.event');
+
+		// Subscribe the registered event handler
+		$this->app['events']->subscribe('sanatorium.sync.dictionaryentries.handler.event');
+
 		$this->prepareResources();
 
 		$this->registerLaravelExcel();
@@ -33,6 +39,30 @@ class SyncServiceProvider extends ServiceProvider {
 
 		// Register the repository
 		$this->bindIf('sanatorium.sync.export', 'Sanatorium\Sync\Repositories\Export\ExportRepository');
+
+		// Register the repository
+		$this->bindIf('sanatorium.sync.dictionary', 'Sanatorium\Sync\Repositories\Dictionary\DictionaryRepository');
+
+		// Register the data handler
+		$this->bindIf('sanatorium.sync.dictionary.handler.data', 'Sanatorium\Sync\Handlers\Dictionary\DictionaryDataHandler');
+
+		// Register the event handler
+		$this->bindIf('sanatorium.sync.dictionary.handler.event', 'Sanatorium\Sync\Handlers\Dictionary\DictionaryEventHandler');
+
+		// Register the validator
+		$this->bindIf('sanatorium.sync.dictionary.validator', 'Sanatorium\Sync\Validator\Dictionary\DictionaryValidator');
+
+		// Register the repository
+		$this->bindIf('sanatorium.sync.dictionaryentries', 'Sanatorium\Sync\Repositories\Dictionaryentries\DictionaryentriesRepository');
+
+		// Register the data handler
+		$this->bindIf('sanatorium.sync.dictionaryentries.handler.data', 'Sanatorium\Sync\Handlers\Dictionaryentries\DictionaryentriesDataHandler');
+
+		// Register the event handler
+		$this->bindIf('sanatorium.sync.dictionaryentries.handler.event', 'Sanatorium\Sync\Handlers\Dictionaryentries\DictionaryentriesEventHandler');
+
+		// Register the validator
+		$this->bindIf('sanatorium.sync.dictionaryentries.validator', 'Sanatorium\Sync\Validator\Dictionaryentries\DictionaryentriesValidator');
 	}
 
 	/**
