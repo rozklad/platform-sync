@@ -21,6 +21,7 @@ class SyncEventHandler extends BaseEventHandler  {
 
 		foreach ( $formatters as $formatter ) 
 		{
+            $formatter = app($formatter);
 			$formatter->refresh();
 		}
 	}
