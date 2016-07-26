@@ -44,7 +44,7 @@ class SyncController extends AdminController
         $dictionaries = app('sanatorium.sync.dictionary')->all();
 
         // @todo: importable entities dynamically
-        $entities = ['products', 'users'];
+        $entities = ['profiles', /*'products', 'users'*/];
 
         return view('sanatorium/sync::index', compact('formatters', 'dictionaries', 'entities'));
     }
