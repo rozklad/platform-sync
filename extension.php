@@ -67,7 +67,7 @@ return [
     |
     */
 
-    'version' => '1.3.2',
+    'version' => '1.3.3',
 
     /*
     |--------------------------------------------------------------------------
@@ -170,6 +170,16 @@ return [
         {
             Route::get('{type}', ['as' => 'sanatorium.sync.export.formatter', 'uses' => 'ExportController@index']);
         });
+
+        Route::group([
+            'namespace' => 'Sanatorium\Sync\Controllers\Frontend',
+        ], function ()
+        {
+            // @todo: take only necessary urls
+            Route::get('{type}.xml', ['as' => 'sanatorium.sync.export.formatter', 'uses' => 'ExportController@index']);
+        });
+
+
 
         Route::group([
             'prefix'    => admin_uri() . '/sync/dictionaries',
