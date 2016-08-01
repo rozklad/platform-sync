@@ -210,7 +210,7 @@ class ProductConnector {
 		return $normalized_key;
 	}
 
-	public function addRemoteMedia($file_url = null)
+	public static function addRemoteMedia($file_url = null)
 	{
 		if ( empty($file_url) ) return false;
 
@@ -226,9 +226,15 @@ class ProductConnector {
 		if ( $downloaded = $repo->whereName($basename)->first() )
 			return $downloaded->id;
 
-		$contents = @file_get_contents($file_url);
-
-		if ( empty($contents) ) return false;
+        // @todo: temp, delte this
+        $local_path = base_path('/clients/zpflorence/images/' . $basename);
+        if ( file_exists( $local_path ) && !is_null($local_path) ) {
+            $contents = file_get_contents($local_path);
+        } else
+        {
+            $contents = file_get_contents($file_url);
+            if ( empty($contents) ) return false;
+        }
 
 		$temp_dir = __DIR__ . '/temp/';
 
