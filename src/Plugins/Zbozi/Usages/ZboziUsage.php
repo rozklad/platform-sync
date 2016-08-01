@@ -5,6 +5,6 @@ use Sanatorium\Stock\Usages\DefaultUsage;
 class ZboziUsage extends DefaultUsage {
 
 	public $slug 			= 'zbozi';
-	public $extension 		= 'synczbozi';
+	public $extension 		= 'sync';
 
 }

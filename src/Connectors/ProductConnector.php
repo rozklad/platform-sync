@@ -226,9 +226,9 @@ class ProductConnector {
 		if ( $downloaded = $repo->whereName($basename)->first() )
 			return $downloaded->id;
 
-        // @todo: temp, delte this
+        // @todo: temp, delete this
         $local_path = base_path('/clients/zpflorence/images/' . $basename);
-        if ( file_exists( $local_path ) && !is_null($local_path) ) {
+        if ( file_exists( $local_path ) && !empty($local_path) ) {
             $contents = file_get_contents($local_path);
         } else
         {
@@ -292,6 +292,11 @@ class ProductConnector {
 				return $var[0] . '.bmp';
 
 				break;
+
+            default:
+                return $file_url;
+
+                break;
 
 		}
 	}
