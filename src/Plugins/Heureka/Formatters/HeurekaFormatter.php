@@ -64,6 +64,9 @@ class HeurekaFormatter extends ProductFormatter {
 
 	public static function deliverydate($object, $value = null)
 	{
+        if ( !is_object($object->getAvailability('heureka')) )
+            return 0;
+
 		return $object->getAvailability('heureka')->alias ?: 0;
 	}
 }
