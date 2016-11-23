@@ -184,8 +184,12 @@ class Formatter {
 
     public static function manufacturer($object, $value)
     {
-        if ($manufacturer = $object->manufacturers()->first())
-            return $manufacturer->manufacturer_name;
+        try {
+            if ($manufacturer = $object->manufacturers()->first())
+                return $manufacturer->manufacturer_name;
+        } catch ( \PDOException $e ) {
+            // there was issue with manufacturer relation query - return default value
+        }
 
         return 'Unknown';
     }
